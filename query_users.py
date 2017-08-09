@@ -51,12 +51,24 @@ class industry:
                 if name != id:
                     self.add(friend.screen_name)
     def save(self):
-        q = industry.q.to_list()
-        ids = dict(industry.ids)
-        json.dump({"q":q, "ids":ids}, self.name)
+        print("Saving backup of data...")
+        try:
+            q = industry.q.to_list()
+        except:
+            q = []
+        try:
+            ids = dict(industry.ids)
+        except:
+            ids = {}
+        #ids will grow as code runs.  This may be used to reconstruct the order of files.
+        fName = self.name + str(len(self.ids))
+        with open(fName, "w") as f:
+            json.dump({"q":q, "ids":ids}, f)
+        print("Saved backup of data.")
     def wait(self):
         print("Hit rate limit.  Sleeping for 15 minutes. *Snore*")
         t = Thread(target=self.save)
+        t.start()
         time.sleep(900)
         self.friends_lim = 15
     def get_friends(self, follower):
