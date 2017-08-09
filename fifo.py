@@ -9,9 +9,13 @@ class Node(object):
         self.next = None
 
 class Queue(object):
-    def __init__(self):
+    def __init__(self, data=[]):
+        # data should be in list format from head to tail
         self.head = None
         self.tail = None
+        for element in data:
+            self.push(element)
+
     """
     put new data at tail queue
     """
@@ -33,8 +37,13 @@ class Queue(object):
     """
     export data from Queue as list
     """
-    def to_list(self):
+    def to_list(self, copy=False):
         l = []
+        q = Queue()
         while self.head != None:
-            l.append(self.pop())
+            data = self.pop()
+            l.append(data)
+            if copy:
+                q.push(data)
+        self.head = q.head
         return l
