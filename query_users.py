@@ -51,20 +51,19 @@ class industry:
                 if name != id:
                     self.add(friend.screen_name)
     def save(self):
-        print("Saving backup of data...")
         try:
-            q = industry.q.to_list()
+            q = self.q.to_list(copy=True)
         except:
             q = []
         try:
-            ids = dict(industry.ids)
+            ids = dict(self.ids)
         except:
             ids = {}
         #ids will grow as code runs.  This may be used to reconstruct the order of files.
         fName = self.name + str(len(self.ids))
         with open(fName, "w") as f:
             json.dump({"q":q, "ids":ids}, f)
-        print("Saved backup of data.")
+        print("Saved backup of data as {}.".format(fName))
     def wait(self):
         print("Hit rate limit.  Sleeping for 15 minutes. *Snore*")
         t = Thread(target=self.save)
@@ -78,7 +77,7 @@ class industry:
             return friends
         except tweepy.error.RateLimitError:
             self.wait()
-            return self.get_friends(followers)
+            return self.get_friends(follower)
         except tweepy.error.TweepError:
             # user has protected tweets
             return []
@@ -104,12 +103,12 @@ def read_industry(fName):
 """
 Source: \http://www.academy-cube.com/10-tech-twitter-accounts-you-have-to-follow/
 """
-
 tech_starters = ["TechCrunch", "WIRED", "TheNextWeb", "mashabletech", "scrawford", "pogue", "timoreilly", "cdixon", "google", "HP"]
 tech = industry("tech.json")
 
-for starter in tech_starters:
-    tech.add(starter)
+if __name__ == "__main__":
+    for starter in tech_starters:
+        tech.add(starter)
 
-while True:
-    tech.next()
+    while True:
+        tech.next()
