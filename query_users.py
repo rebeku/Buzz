@@ -3,6 +3,7 @@ from fifo import Queue
 import time
 import tweepy
 from collections import Counter
+from math import log10
 from threading import Thread
 
 def build_api(authFile):
@@ -25,9 +26,9 @@ class industry:
     """
     add a new Twitter screen name to the industry.
     """
-    def add(self, id):
+    def add(self, id, n_followers):
         self.q.push(id)
-        self.ids[id] += 1
+        self.ids[id] += 1/log10(n_followers)
     """
     Generate next batch of screen_names
     """
@@ -48,8 +49,9 @@ class industry:
             print("Saved friends of {} to queue.".format(follower.screen_name))
             for friend in friends:
                 name = friend.screen_name
+                n_followers = friend.followers_count
                 if name != id:
-                    self.add(friend.screen_name)
+                    self.add(name, n_followers)
     def save(self):
         try:
             q = self.q.to_list(copy=True)
@@ -103,12 +105,12 @@ def read_industry(fName):
 """
 Source: \http://www.academy-cube.com/10-tech-twitter-accounts-you-have-to-follow/
 """
-tech_starters = ["TechCrunch", "WIRED", "TheNextWeb", "mashabletech", "scrawford", "pogue", "timoreilly", "cdixon", "google", "HP"]
+tech_starters = [("TechCrunch", 9480348), ("WIRED", 9439670), ("TheNextWeb", 1847417), ("mashabletech", 676412), ("scrawford", 20404),( "pogue", 1563905), ("timoreilly", 1988327), ("cdixon", 565563), ("google", 18616185), ("HP", 1055688)]
 tech = industry("tech.json")
 
 if __name__ == "__main__":
     for starter in tech_starters:
-        tech.add(starter)
+        tech.add(starter[0], starter[1])
 
     while True:
         tech.next()
