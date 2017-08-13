@@ -78,7 +78,8 @@ class industry(object):
                     self.add(f_user)
     def save(self):
         try:
-            q = [(user.id, user.gen) for user in industry.q.to_list(copy=True)]
+            q = [(user.id, user.gen, user.followers) for user in self.q.to_list(copy=True)]
+            print(q)
         except:
             q = []
         try:
@@ -108,20 +109,11 @@ class industry(object):
             # user has protected tweets
             return []
 
-def save(industry, fName):
-    # TODO: rewrite as method for industry
-    q = [(user.id, user.gen) for user in industry.q.to_list()]
-    ids = dict(industry.ids)
-    data = {"q":q, "ids":ids}
-    with open(fName, "w") as f:
-        json.dump(data, f)
-    industry.q = Queue(q)
-
 def read_industry(fName):
     with open(fName, "r") as f:
         data = json.load(f)
     ind = industry(fName)
-    q = [user(u[0], u[1]) for u in data["q"]]
+    q = [twitter_user(u[0], u[1], u[2]) for u in data["q"]]
     ind.q = Queue(q)
     ind.ids = counter(data["ids"])
     return ind
