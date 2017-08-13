@@ -1,5 +1,6 @@
 import unittest
-from query_users import industry, read_industry
+from math import log10
+from query_users import industry, read_industry, twitter_user, counter
 
 class follower:
     def __init__(self, friends):
@@ -19,11 +20,21 @@ class mock_api:
     def followers(self, id):
         return([follower([friend("f0"), friend("f1")])])
 
+class CounterTestCase(unittest.TestCase):
+    def test_add(self):
+        c = counter()
+        u = twitter_user("Hello", 0, 5)
+        c.add(u)
+        assert c["Hello"] == {"local": 1, "total": 5}, "Failed to add new user to counter."
+        assert c.weights() == {"Hello": 1 * log10(.2)}
+        c.add(u)
+        assert c["Hello"] == {"local": 2, "total": 5}, "Failed to increment counter"
+
 class QueryTestCase(unittest.TestCase):
     def set_up(self):
         mock = industry("mock.json")
         mock.api = mock_api()
-        mock.add("Hello", 0, 1)
+        mock.add(twitter_user("Hello", 0, 1))
         mock.next()
         return mock
     def test_add_data(self):
@@ -40,6 +51,7 @@ class QueryTestCase(unittest.TestCase):
 
 def suite():
    suite = unittest.TestSuite()
+   suite.addTest(CounterTestCase("test_add"))
    suite.addTest(QueryTestCase("test_add_data"))
    suite.addTest(QueryTestCase("test_save"))
    return suite
