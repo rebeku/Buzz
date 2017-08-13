@@ -12,6 +12,13 @@ def build_api(authFile):
         auth = tweepy.OAuthHandler(tokens["consumer_key"], tokens["consumer_secret"])
         auth.set_access_token(tokens["access_token"], tokens["access_token_secret"])
         return tweepy.API(auth)
+"""
+wrapper around tweepy's user that includes the number of generations in queue
+"""
+class user:
+    def __init__(self, id, gen):
+        self.id = id
+        self.gen = gen
 
 """
 Track Twitter screen names associated with an industry
@@ -26,22 +33,22 @@ class industry:
     """
     add a new Twitter screen name to the industry.
     """
-    def add(self, id, n_followers):
-        self.q.push(id)
-        self.ids[id] += 1/log10(n_followers)
+    def add(self, id, gen, n_followers):
+        self.q.push(user(id, gen))
+        self.ids[id] += 1/(1 + log10(n_followers))
     """
     Generate next batch of screen_names
     """
     def next(self):
-        id = self.q.pop()
-        print("Finding neighbors of {}".format(id))
-        self.add_neighbors(id)
+        user = self.q.pop()
+        print("Finding neighbors of {}".format(user))
+        self.add_neighbors(user)
     """
     Find users that are neighbors of a specific user
     (i.e. users that follow id will follow id2)
     """
-    def add_neighbors(self, id):
-        followers = self.api.followers(id)
+    def add_neighbors(self, user):
+        followers = self.api.followers(user.id)
         for follower in followers:
             if self.friends_lim == 0:
                 self.wait()
@@ -51,10 +58,10 @@ class industry:
                 name = friend.screen_name
                 n_followers = friend.followers_count
                 if name != id:
-                    self.add(name, n_followers)
+                    self.add(name, user.gen + 1, n_followers)
     def save(self):
         try:
-            q = self.q.to_list(copy=True)
+            q = [(user.id, user.gen) for user in industry.q.to_list(copy=True)]
         except:
             q = []
         try:
@@ -86,7 +93,7 @@ class industry:
 
 def save(industry, fName):
     # TODO: rewrite as method for industry
-    q = industry.q.to_list()
+    q = [(user.id, user.gen) for user in industry.q.to_list()]
     ids = dict(industry.ids)
     data = {"q":q, "ids":ids}
     with open(fName, "w") as f:
@@ -97,7 +104,8 @@ def read_industry(fName):
     with open(fName, "r") as f:
         data = json.load(f)
     ind = industry(fName)
-    ind.q = Queue(data["q"])
+    q = [user(u[0], u[1]) for u in data["q"]]
+    ind.q = Queue(q)
     ind.ids = Counter(data["ids"])
     return ind
 

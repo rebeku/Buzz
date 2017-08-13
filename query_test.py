@@ -11,6 +11,7 @@ class follower:
 class friend:
     def __init__(self, screen_name):
         self.screen_name = screen_name
+        self.followers_count = 1
 
 class mock_api:
     def __init__(self):
@@ -22,18 +23,20 @@ class QueryTestCase(unittest.TestCase):
     def set_up(self):
         mock = industry("mock.json")
         mock.api = mock_api()
-        mock.add("Hello")
+        mock.add("Hello", 0, 1)
         mock.next()
         return mock
     def test_add_data(self):
         mock = self.set_up()
         assert len(mock.ids) == 3, "Failed to save correct friends for follower."
-        assert mock.q.pop() == "f0", "Q not returning correct screen names in FIFO order"
+        user = mock.q.pop()
+        assert user.id == "f0", "Q not returning correct screen names in FIFO order"
+        assert user.gen == 1, "Q fails to track generations"
     def test_save(self):
         mock = self.set_up()
         mock.save()
         mock2 = read_industry("mock.json3")
-        assert len(mock.ids) == 3 and mock.q.pop() == "f0", "Not saving correct data"
+        assert len(mock.ids) == 3 and mock.q.pop().id == "f0", "Not saving correct data"
 
 def suite():
    suite = unittest.TestSuite()
