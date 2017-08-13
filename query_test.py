@@ -25,10 +25,10 @@ class CounterTestCase(unittest.TestCase):
         c = counter()
         u = twitter_user("Hello", 0, 5)
         c.add(u)
-        assert c["Hello"] == {"local": 1, "total": 5}, "Failed to add new user to counter."
-        assert c.weights() == {"Hello": 1 * log10(.2)}
+        assert c.data["Hello"] == {"local": 1, "total": 5}, "Failed to add new user to counter."
+        assert c.weights()["Hello"] == 1 * log10(.2)
         c.add(u)
-        assert c["Hello"] == {"local": 2, "total": 5}, "Failed to increment counter"
+        assert c.data["Hello"] == {"local": 2, "total": 5}, "Failed to increment counter"
 
 class QueryTestCase(unittest.TestCase):
     def set_up(self):
@@ -39,7 +39,7 @@ class QueryTestCase(unittest.TestCase):
         return mock
     def test_add_data(self):
         mock = self.set_up()
-        assert len(mock.ids) == 3, "Failed to save correct friends for follower."
+        assert len(mock.ids.data) == 3, "Failed to save correct friends for follower."
         user = mock.q.pop()
         assert user.id == "f0", "Q not returning correct screen names in FIFO order"
         assert user.gen == 1, "Q fails to track generations"
@@ -47,7 +47,7 @@ class QueryTestCase(unittest.TestCase):
         mock = self.set_up()
         mock.save()
         mock2 = read_industry("mock.json3")
-        assert len(mock.ids) == 3 and mock.q.pop().id == "f0", "Not saving correct data"
+        assert len(mock.ids.data) == 3 and mock.q.pop().id == "f0", "Not saving correct data"
 
 def suite():
    suite = unittest.TestSuite()

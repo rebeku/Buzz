@@ -24,17 +24,17 @@ and the number of times that user has been followed at all.  Frequency counts fo
 adjusted by the log-scale proportion of followers that are in local dataset.
 """
 class counter(dict):
-    def __init__(self, data= {}):
-        self = data
+    def __init__(self, data={}):
+        self.data = data
     def add(self, user):
         id = user.id
-        if id in self:
-            self[id]["local"] += 1
+        if id in self.data:
+            self.data[id]["local"] += 1
         else:
-            self[id] = {"local": 1, "total": user.followers}
+            self.data[id] = {"local": 1, "total": user.followers}
     def weights(self):
         weighted = {}
-        for k, v in self.items():
+        for k, v in self.data.items():
             weighted[k] = v["local"] * log10(v["local"] / v["total"])
         return weighted
 
@@ -79,7 +79,6 @@ class industry(object):
     def save(self):
         try:
             q = [(user.id, user.gen, user.followers) for user in self.q.to_list(copy=True)]
-            print(q)
         except:
             q = []
         try:
